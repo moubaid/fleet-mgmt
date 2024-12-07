@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Vehicle {
+  id              String    @id @default(cuid())
+  plateNumber     String    @unique
+  model           String
+  status          String    @default("available")
+  fuelLevel       Int       @default(100)
+  lastMaintenance DateTime  @default(now())
+  latitude        Float?
+  longitude       Float?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  driver          Driver?   @relation("CurrentVehicle")
+  rides           Ride[]
+}
+
+model Driver {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  phone           String
+  licenseNumber   String    @unique
+  rating          Float     @default(5.0)
+  status          String    @default("available")
+  currentVehicle  Vehicle?  @relation("CurrentVehicle", fields: [vehicleId], references: [id])
+  vehicleId       String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  rides           Ride[]
+}
+
+model Ride {
+  id                String    @id @default(cuid())
+  pickupLatitude    Float
+  pickupLongitude   Float
+  pickupAddress     String
+  dropoffLatitude   Float
+  dropoffLongitude  Float
+  dropoffAddress    String
+  status            String    @default("pending")
+  driver            Driver?   @relation(fields: [driverId], references: [id])
+  driverId          String?
+  vehicle           Vehicle?  @relation(fields: [vehicleId], references: [id])
+  vehicleId         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  estimatedArrival  DateTime?
+}
